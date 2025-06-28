@@ -89,23 +89,39 @@ jobs:
           if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               $envFile = __DIR__ . '/.env';
               if (!file_exists($envFile)) {
-                copy(__DIR__ . '/.env.example', $envFile);
-                }
+                  copy(__DIR__ . '/.env.example', $envFile);
+              }
+
+              $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+              $appUrl = 'https://' . $host;
+
               $data = [
                   'APP_NAME' => trim($_POST['app_name']),
                   'DB_HOST' => trim($_POST['db_host']),
                   'DB_DATABASE' => trim($_POST['db_name']),
                   'DB_USERNAME' => trim($_POST['db_user']),
                   'DB_PASSWORD' => trim($_POST['db_pass']),
+                  'APP_ENV' => 'production',
+                  'APP_DEBUG' => 'false',
+                  'APP_URL' => $appUrl,
               ];
 
               $env = file_get_contents($envFile);
               foreach ($data as $key => $value) {
-                  $env = preg_replace("/^" . $key . "=.*/m", $key . "=" . $value, $env);
+                  $pattern = "/^" . preg_quote($key, '/') . "=.*/m";
+                  if (preg_match($pattern, $env)) {
+                      $env = preg_replace($pattern, "$key=$value", $env);
+                  } else {
+                      $env .= "\n$key=$value";
+                  }
               }
               file_put_contents($envFile, $env);
 
-              echo "<h3>.env updated! You can now delete this file.</h3>";
+              echo "<h3>.env updated! Running migrations...</h3>";
+              echo "<pre>";
+              system('php artisan migrate --force');
+              echo "</pre>";
+              echo "<h3>Done. You can now delete this file.</h3>";
               unlink(__FILE__);
               exit;
           }
@@ -116,7 +132,7 @@ jobs:
               <label>DB Name: <input name="db_name"></label><br>
               <label>DB User: <input name="db_user"></label><br>
               <label>DB Password: <input name="db_pass" type="password"></label><br>
-              <button type="submit">Update .env</button>
+              <button type="submit">Update .env & Migrate</button>
           </form>
           EOF
 
