@@ -134,22 +134,53 @@ jobs:
 
       - name: Force HTTPS in AppServiceProvider
         run: |
-          sed -i '/public function boot()/,/^}/
-            /{/ a\
-                  if (env('\''APP_ENV'\'') === '\''production'\'') {\
-                      \\\\Illuminate\\\\Support\\\\Facades\\\\URL::forceScheme('\''https'\'');\
-                  }\
-                  $basePath = base_path();\
-                  if (\\\\Illuminate\\\\Support\\\\Facades\\\\File::exists("$basePath/.installed") && \\\\Illuminate\\\\Support\\\\Facades\\\\File::exists("$basePath/install.php")) {\
-                      try {\
-                          \\\\Illuminate\\\\Support\\\\Facades\\\\Artisan::call('\''migrate'\'', ['\''--force'\'' => true]);\
-                          \\\\Illuminate\\\\Support\\\\Facades\\\\File::delete("$basePath/.installed");\
-                          \\\\Illuminate\\\\Support\\\\Facades\\\\File::delete("$basePath/install.php");\
-                      } catch (\\\\Exception \$e) {\
-                        logger('Migration error: ' . \$e->getMessage());\
-                      }\
-                  }
-          }' app/Providers/AppServiceProvider.php
+          cat > app/Providers/AppServiceProvider.php << 'EOF'
+            <?php
+
+            namespace App\Providers;
+
+            use Illuminate\Support\ServiceProvider;
+            use Illuminate\Support\Facades\URL;
+            use Illuminate\Support\Facades\File;
+            use Illuminate\Support\Facades\Artisan;
+
+            class AppServiceProvider extends ServiceProvider
+            {
+                public function register(): void
+                {
+                    //
+                }
+
+                public function boot(): void
+                {
+                    // Force HTTPS in production
+                    if (env('APP_ENV') === 'production') {
+                        URL::forceScheme('https');
+                    }
+
+                    // Handle installation and migrations
+                    $this->handleInstallationMigrations();
+                }
+
+                private function handleInstallationMigrations(): void
+                {
+                    $basePath = base_path();
+                    $installedFile = "$basePath/.installed";
+                    $installFile = "$basePath/install.php";
+
+                    if (File::exists($installedFile) && File::exists($installFile)) {
+                        try {
+                            Artisan::call('migrate', ['--force' => true]);
+                            File::delete($installedFile);
+                            File::delete($installFile);
+                            logger('Installation migrations completed successfully');
+                        } catch (\Exception $e) {
+                            logger('Migration error: ' . $e->getMessage());
+                        }
+                    }
+                }
+            }
+            EOF
 
       - name: 📂 Sync files to production (FTP)
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
