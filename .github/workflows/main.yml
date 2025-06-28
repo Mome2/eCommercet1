@@ -144,8 +144,6 @@ jobs:
             .git*
             package-lock.json
             package.json
-            composer.json
-            composer.lock
             phpunit.xml
             .editorconfig
             vite.config.js
