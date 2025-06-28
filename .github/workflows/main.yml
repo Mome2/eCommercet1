@@ -114,13 +114,11 @@ jobs:
               }
               file_put_contents($envFile, $env);
 
-              echo "<h3>.env updated! Running migrations...</h3>";
+              echo "<h3>.env updated!</h3>";
               echo "<pre>";
               file_put_contents(__DIR__ . '/.installed', 'yes');
-              exec('php artisan migrate --force');
               echo "</pre>";
               echo "<h3>Done. You can now delete this file.</h3>";
-              unlink(__FILE__);
               exit;
           }
           ?>
@@ -130,7 +128,7 @@ jobs:
               <label>DB Name: <input name="db_name"></label><br>
               <label>DB User: <input name="db_user"></label><br>
               <label>DB Password: <input name="db_pass" type="password"></label><br>
-              <button type="submit">Update .env & Migrate</button>
+              <button type="submit">Update .env</button>
           </form>
           EOF
 
@@ -140,6 +138,16 @@ jobs:
             /{/ a\
               if (env('\''APP_ENV'\'') === '\''production'\'') {\n\
                   \ \ \ \ \\Illuminate\\Support\\Facades\\URL::forceScheme('\''https'\'');\n\
+              }\n\
+              \$basePath = base_path();\n\
+              if (\\Illuminate\\Support\\Facades\\File::exists(\"\$basePath/.installed\") && \\Illuminate\\Support\\Facades\\File::exists(\"\$basePath/install.php\")) {\n\
+                  try {\n\
+                      \\Illuminate\\Support\\Facades\\Artisan::call('migrate', ['--force' => true]);\n\
+                      \\Illuminate\\Support\\Facades\\File::delete(\"\$basePath/.installed\");\n\
+                      \\Illuminate\\Support\\Facades\\File::delete(\"\$basePath/install.php\");\n\
+                  } catch (\\Exception \$e) {\n\
+                      logger('Migration error: ' . \$e->getMessage());\n\
+                  }\n\
               }
           }' app/Providers/AppServiceProvider.php
 
