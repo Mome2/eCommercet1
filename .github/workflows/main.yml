@@ -122,7 +122,12 @@ jobs:
 
       - name: Force HTTPS in AppServiceProvider
         run: |
-          sed -i '/public function boot()/a \ \ \ \ if (env('"'"'APP_ENV'"'"') === '"'"'production'"'"') { \n\ \ \ \ \ \ \ \ Illuminate\\Support\\Facades\\URL::forceScheme('"'"'https'"'"'); \n\ \ \ \ }' app/Providers/AppServiceProvider.php
+          sed -i '/public function boot()/,/^}/ {
+            /{/ a\
+              if (env('\''APP_ENV'\'') === '\''production'\'') {\n\
+                  \ \ \ \ \Illuminate\\Support\\Facades\\URL::forceScheme('\''https'\'');\n\
+              }
+          }' app/Providers/AppServiceProvider.php
 
       - name: 📂 Sync files to production (FTP)
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
