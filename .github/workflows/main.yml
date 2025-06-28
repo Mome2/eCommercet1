@@ -134,7 +134,7 @@ jobs:
 
       - name: Force HTTPS in AppServiceProvider
         run: |
-          cat > app/Providers/AppServiceProvider.php << 'EOF'
+          cat << 'EOF' > app/Providers/AppServiceProvider.php
             <?php
 
             namespace App\Providers;
@@ -179,7 +179,7 @@ jobs:
                         }
                     }
                 }
-            }
+              }
             EOF
 
       - name: 📂 Sync files to production (FTP)
@@ -189,6 +189,7 @@ jobs:
           username: ${{ secrets.b6_ftp_username }}
           password: ${{ secrets.b6_ftp_password }}
           server-dir: /htdocs/
+          dangerous-clean-slate: false
           exclude: |
             **/node_modules/**
             **/.github/**
@@ -201,4 +202,3 @@ jobs:
             .editorconfig
             vite.config.js
             README.md
-          dangerous-clean-slate: false
