@@ -134,20 +134,21 @@ jobs:
 
       - name: Force HTTPS in AppServiceProvider
         run: |
-          sed -i '/public function boot()/,/^}/ {/{/ a\ \n\
-              if (env('\''APP_ENV'\'') === '\''production'\'') {\n\
-                  \ \ \ \ \\Illuminate\\Support\\Facades\\URL::forceScheme('\''https'\'');\n\
-              }\n\
-              \  \$basePath = base_path();\n\
-              if (\ \\Illuminate\\Support\\Facades\\File::exists(\"\$basePath/.installed\") &&\  \ \\Illuminate\\Support\\Facades\\File::exists(\"\$basePath/install.php\")) {\n\
-                  try {\n\
-                      \ \\Illuminate\\Support\\Facades\\Artisan::call('migrate', ['--force' => true]);\n\
-                      \ \\Illuminate\\Support\\Facades\\File::delete(\"\$basePath/.installed\");\n\
-                      \ \\Illuminate\\Support\\Facades\\File::delete(\"\$basePath/install.php\");\n\
-                  } catch (\\Exception \$e) {\n\
-                      logger('Migration error: ' . \$e->getMessage());\n\
-                  }\n\
-              }
+          sed -i '/public function boot()/,/^}/ {
+            /{/ a\
+                  if (env('\''APP_ENV'\'') === '\''production'\'') {\
+                      \\\\Illuminate\\\\Support\\\\Facades\\\\URL::forceScheme('\''https'\'');\
+                  }\
+                  $basePath = base_path();\
+                  if (\\\\Illuminate\\\\Support\\\\Facades\\\\File::exists("$basePath/.installed") && \\\\Illuminate\\\\Support\\\\Facades\\\\File::exists("$basePath/install.php")) {\
+                      try {\
+                          \\\\Illuminate\\\\Support\\\\Facades\\\\Artisan::call('\''migrate'\'', ['\''--force'\'' => true]);\
+                          \\\\Illuminate\\\\Support\\\\Facades\\\\File::delete("$basePath/.installed");\
+                          \\\\Illuminate\\\\Support\\\\Facades\\\\File::delete("$basePath/install.php");\
+                      } catch (\\\\Exception \$e) {\
+                        logger('Migration error: ' . \$e->getMessage());\
+                      }\
+                  }
           }' app/Providers/AppServiceProvider.php
 
       - name: 📂 Sync files to production (FTP)
