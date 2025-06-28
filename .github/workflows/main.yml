@@ -134,6 +134,7 @@ jobs:
           exclude: |
             **/node_modules/**
             **/.github/**
+            **/.git/**
             **/tests/**
             .git*
             package-lock.json
