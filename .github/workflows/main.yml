@@ -134,8 +134,7 @@ jobs:
 
       - name: Force HTTPS in AppServiceProvider
         run: |
-          sed -i '/public function boot()/,/^}/ {
-            /{/ a\
+          sed -i '/public function boot()/,/^}/ {/{/ a\ \n\
               if (env('\''APP_ENV'\'') === '\''production'\'') {\n\
                   \ \ \ \ \\Illuminate\\Support\\Facades\\URL::forceScheme('\''https'\'');\n\
               }\n\
