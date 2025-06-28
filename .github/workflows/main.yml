@@ -1,0 +1,145 @@
+on:
+  workflow_dispatch:
+    branches:
+      - main
+
+name: 🚀 Deploy website manually (Main)
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v3
+        with:
+          php-version: 8.4
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install PHP dependencies
+        run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
+
+      - name: Laravel setup (only first time)
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        run: |
+          php artisan key:generate --ansi
+
+      - name: Create .htaccess for public redirect
+        run: |
+          cat << EOF > .htaccess
+          <IfModule mod_rewrite.c>
+
+            Options -MultiViews -Indexes
+            RewriteEngine On
+
+            # Set Laravel's entry point
+            DirectoryIndex public/index.php
+
+            # Redirect all HTTP requests to HTTPS
+            RewriteCond %{HTTPS} !=on
+            RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+            # Block access to sensitive files and dotfiles (security)
+            RedirectMatch 403 /\.(?!htaccess).*$
+            <FilesMatch "^\.env|\.git|composer\.(json|lock)|artisan|server\.php|phpunit\.xml|webpack\.mix\.js$">
+                Order allow,deny
+                Deny from all
+            </FilesMatch>
+
+            # Handle Authorization Header (Laravel Sanctum, etc.)
+            RewriteCond %{HTTP:Authorization} .
+            RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+            # Handle X-XSRF-Token Header
+            RewriteCond %{HTTP:x-xsrf-token} .
+            RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+            # Redirect Trailing Slashes If Not A Folder
+            RewriteCond %{REQUEST_FILENAME} !-d
+            RewriteCond %{REQUEST_URI} (.+)/$
+            RewriteRule ^ %1 [L,R=301]
+
+            # Laravel Front Controller
+            RewriteCond %{REQUEST_FILENAME} !-d
+            RewriteCond %{REQUEST_FILENAME} !-f
+            RewriteCond %{DOCUMENT_ROOT}/public/index.php -f
+            RewriteRule ^(.*)$ public/index.php [L]
+
+          </IfModule>
+
+          EOF
+
+      - name: Create install.php
+        run: |
+          cat << 'EOF' > install.php
+          <?php
+          if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+              $envFile = __DIR__ . '/.env';
+              if (!file_exists($envFile)) {
+                copy(__DIR__ . '/.env.example', $envFile);
+                }
+              $data = [
+                  'APP_NAME' => trim($_POST['app_name']),
+                  'DB_HOST' => trim($_POST['db_host']),
+                  'DB_DATABASE' => trim($_POST['db_name']),
+                  'DB_USERNAME' => trim($_POST['db_user']),
+                  'DB_PASSWORD' => trim($_POST['db_pass']),
+              ];
+
+              $env = file_get_contents($envFile);
+              foreach ($data as $key => $value) {
+                  $env = preg_replace("/^" . $key . "=.*/m", $key . "=" . $value, $env);
+              }
+              file_put_contents($envFile, $env);
+
+              echo "<h3>.env updated! You can now delete this file.</h3>";
+              unlink(__FILE__);
+              exit;
+          }
+          ?>
+          <form method="POST">
+              <label>App Name: <input name="app_name"></label><br>
+              <label>DB Host: <input name="db_host" value="127.0.0.1"></label><br>
+              <label>DB Name: <input name="db_name"></label><br>
+              <label>DB User: <input name="db_user"></label><br>
+              <label>DB Password: <input name="db_pass" type="password"></label><br>
+              <button type="submit">Update .env</button>
+          </form>
+          EOF
+
+      - name: Force HTTPS in AppServiceProvider
+        run: |
+          sed -i '/public function boot()/a \ \ \ \ if (env('"'"'APP_ENV'"'"') === '"'"'production'"'"') { \n\ \ \ \ \ \ \ \ Illuminate\\Support\\Facades\\URL::forceScheme('"'"'https'"'"'); \n\ \ \ \ }' app/Providers/AppServiceProvider.php
+
+      - name: 📂 Sync files to production (FTP)
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: ftp.byethost6.com
+          username: ${{ secrets.b6_ftp_username }}
+          password: ${{ secrets.b6_ftp_password }}
+          server-dir: /htdocs/
+          exclude: |
+            **/node_modules/**
+            **/.github/**
+            **/tests/**
+            .git*
+            package-lock.json
+            package.json
+            composer.json
+            composer.lock
+            phpunit.xml
+            .editorconfig
+            vite.config.js
+            README.md
