@@ -88,9 +88,6 @@ jobs:
           <?php
           if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               $envFile = __DIR__ . '/.env';
-              if (!file_exists($envFile)) {
-                  copy(__DIR__ . '/.env.example', $envFile);
-              }
 
               $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
               $appUrl = 'https://' . $host;
@@ -141,7 +138,7 @@ jobs:
           sed -i '/public function boot()/,/^}/ {
             /{/ a\
               if (env('\''APP_ENV'\'') === '\''production'\'') {\n\
-                  \ \ \ \ \Illuminate\\Support\\Facades\\URL::forceScheme('\''https'\'');\n\
+                  \ \ \ \ \\Illuminate\\Support\\Facades\\URL::forceScheme('\''https'\'');\n\
               }
           }' app/Providers/AppServiceProvider.php
 
