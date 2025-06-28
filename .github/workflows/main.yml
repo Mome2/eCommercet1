@@ -34,7 +34,8 @@ jobs:
       - name: Laravel setup (only first time)
         if: steps.composer-cache.outputs.cache-hit != 'true'
         run: |
-          php artisan key:generate --ansi
+          composer run-script post-root-package-install
+          composer run-script post-create-project-cmd
 
       - name: Create .htaccess for public redirect
         run: |
