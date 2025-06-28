@@ -143,6 +143,7 @@ jobs:
             use Illuminate\Support\Facades\URL;
             use Illuminate\Support\Facades\File;
             use Illuminate\Support\Facades\Artisan;
+            use Illuminate\Support\Facades\Schema;
 
             class AppServiceProvider extends ServiceProvider
             {
@@ -170,6 +171,7 @@ jobs:
 
                     if (File::exists($installedFile) && File::exists($installFile)) {
                         try {
+                            Schema::defaultStringLength(191);
                             Artisan::call('migrate', ['--force' => true]);
                             File::delete($installedFile);
                             File::delete($installFile);
