@@ -142,54 +142,50 @@ jobs:
         if: steps.composer-cache.outputs.cache-hit != 'true'
         run: |
           cat << 'EOF' > app/Providers/AppServiceProvider.php
-            <?php
+          <?php
 
-            namespace App\Providers;
+          namespace App\Providers;
 
-            use Illuminate\Support\ServiceProvider;
-            use Illuminate\Support\Facades\URL;
-            use Illuminate\Support\Facades\File;
-            use Illuminate\Support\Facades\Artisan;
-            use Illuminate\Support\Facades\Schema;
+          use Illuminate\Support\ServiceProvider;
+          use Illuminate\Support\Facades\URL;
+          use Illuminate\Support\Facades\File;
+          use Illuminate\Support\Facades\Artisan;
+          use Illuminate\Support\Facades\Schema;
 
-            class AppServiceProvider extends ServiceProvider
+          class AppServiceProvider extends ServiceProvider
+          {
+            public function register(): void{}
+
+
+            public function boot(): void
             {
-                public function register(): void
-                {
-                    //
-                }
+            // Force HTTPS in production
+            if (env('APP_ENV') === 'production') {
+            URL::forceScheme('https');
+            }
+            // Handle installation and migrations
+            $this->handleInstallationMigrations();
+            }
+            private function handleInstallationMigrations(): void
+            {
+            $basePath = base_path();
+            $installedFile = "$basePath/.installed";
+            $installFile = "$basePath/install.php";
+            if (File::exists($installedFile) && File::exists($installFile)) {
+            try {
+            Schema::defaultStringLength(191);
+            Artisan::call('migrate', ['--force' => true]);
+            File::delete($installedFile);
+            File::delete($installFile);
+            logger('Installation migrations completed successfully');
+            } catch (\Exception $e) {
+            logger('Migration error: ' . $e->getMessage());
+            }
+            }
+            }
+            }
 
-                public function boot(): void
-                {
-                    // Force HTTPS in production
-                    if (env('APP_ENV') === 'production') {
-                        URL::forceScheme('https');
-                    }
-
-                    // Handle installation and migrations
-                    $this->handleInstallationMigrations();
-                }
-
-                private function handleInstallationMigrations(): void
-                {
-                    $basePath = base_path();
-                    $installedFile = "$basePath/.installed";
-                    $installFile = "$basePath/install.php";
-
-                    if (File::exists($installedFile) && File::exists($installFile)) {
-                        try {
-                            Schema::defaultStringLength(191);
-                            Artisan::call('migrate', ['--force' => true]);
-                            File::delete($installedFile);
-                            File::delete($installFile);
-                            logger('Installation migrations completed successfully');
-                        } catch (\Exception $e) {
-                            logger('Migration error: ' . $e->getMessage());
-                        }
-                    }
-                }
-              }
-            EOF
+          EOF
 
       - name: 📂 Sync files to production (FTP)
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
