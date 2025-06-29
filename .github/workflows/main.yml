@@ -38,6 +38,7 @@ jobs:
           composer run-script post-create-project-cmd
 
       - name: Create .htaccess for public redirect
+        if: steps.composer-cache.outputs.cache-hit != 'true'
         run: |
           cat << EOF > .htaccess
           <IfModule mod_rewrite.c>
@@ -83,6 +84,7 @@ jobs:
           EOF
 
       - name: Create install.php
+        if: steps.composer-cache.outputs.cache-hit != 'true'
         run: |
           cat << 'EOF' > install.php
           <?php
@@ -133,6 +135,7 @@ jobs:
           EOF
 
       - name: Force HTTPS in AppServiceProvider
+        if: steps.composer-cache.outputs.cache-hit != 'true'
         run: |
           cat << 'EOF' > app/Providers/AppServiceProvider.php
             <?php
