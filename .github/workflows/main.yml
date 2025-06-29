@@ -1,9 +1,9 @@
 on:
-  workflow_dispatch:
+  push:
     branches:
       - main
 
-name: 🚀 Deploy website manually (Main)
+name: 🚀 Deploy Website On Push (Main)
 
 jobs:
   web-deploy:
