@@ -191,7 +191,7 @@ jobs:
 
       - name: 📂 Sync files to production (FTP)
         if: steps.composer-cache.outputs.cache-hit == 'true'
-        uses: SamKirkland/FTP-Deploy-Action@4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.byethost6.com
           username: ${{ secrets.b6_ftp_username }}
@@ -213,7 +213,7 @@ jobs:
 
       - name: 📂 Sync files to production (FTP)
         if: steps.composer-cache.outputs.cache-hit != 'true'
-        uses: SamKirkland/FTP-Deploy-Action@4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.byethost6.com
           username: ${{ secrets.b6_ftp_username }}
