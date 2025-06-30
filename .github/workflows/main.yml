@@ -227,7 +227,7 @@ jobs:
             .git*
             .env
             .htaccess
-            installed.php
+            install.php
             package-lock.json
             package.json
             phpunit.xml
