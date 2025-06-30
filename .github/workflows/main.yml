@@ -125,6 +125,7 @@ jobs:
               file_put_contents(__DIR__ . '/.installed', 'yes');
               echo "</pre>";
               echo "<h3>Done. You can now delete this file.</h3>";
+              header("Location: /");
               exit;
           }
           ?>
