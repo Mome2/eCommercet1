@@ -190,7 +190,7 @@ jobs:
           EOF
 
       - name: 📂 Sync files to production (FTP)
-        if: steps.composer-cache.outputs.cache-hit == 'true'
+        if: steps.composer-cache.outputs.cache-hit != 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.byethost6.com
@@ -212,7 +212,7 @@ jobs:
             README.md
 
       - name: 📂 Sync files to production (FTP)
-        if: steps.composer-cache.outputs.cache-hit != 'true'
+        if: steps.composer-cache.outputs.cache-hit == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.byethost6.com
