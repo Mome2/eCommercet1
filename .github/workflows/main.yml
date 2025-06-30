@@ -29,7 +29,6 @@ jobs:
             ${{ runner.os }}-php-
 
       - name: Install PHP dependencies
-        if: steps.composer-cache.outputs.cache-hit != 'true'
         run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
 
       - name: Laravel setup (only first time)
