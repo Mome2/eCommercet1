@@ -120,15 +120,6 @@ jobs:
                   }
               }
               file_put_contents($envFile, $env);
-              $syncFile = __DIR__ . '/.ftp-deploy-sync-state.json';
-              if (file_exists($syncFile)) {
-              $json = json_decode(file_get_contents($syncFile), true);
-              // Filter out unwanted entries
-              $json = array_filter($json, function ($entry) {
-              return !in_array($entry['name'], ['.env', 'install.php', '.htaccess']);
-              });
-              // Re-index array and save it back
-              file_put_contents($syncFile, json_encode(array_values($json), JSON_PRETTY_PRINT));
               }
 
               echo "<h3>.env updated!</h3>";
@@ -199,7 +190,8 @@ jobs:
           EOF
 
       - name: 📂 Sync files to production (FTP)
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        if: steps.composer-cache.outputs.cache-hit = 'true'
+        uses: SamKirkland/FTP-Deploy-Action@4.3.5
         with:
           server: ftp.byethost6.com
           username: ${{ secrets.b6_ftp_username }}
@@ -212,6 +204,31 @@ jobs:
             **/.git/**
             **/tests/**
             .git*
+            package-lock.json
+            package.json
+            phpunit.xml
+            .editorconfig
+            vite.config.js
+            README.md
+
+      - name: 📂 Sync files to production (FTP)
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        uses: SamKirkland/FTP-Deploy-Action@4.3.5
+        with:
+          server: ftp.byethost6.com
+          username: ${{ secrets.b6_ftp_username }}
+          password: ${{ secrets.b6_ftp_password }}
+          server-dir: /htdocs/
+          dangerous-clean-slate: false
+          exclude: |
+            **/node_modules/**
+            **/.github/**
+            **/.git/**
+            **/tests/**
+            .git*
+            .env
+            .htaccess
+            installed.php
             package-lock.json
             package.json
             phpunit.xml
