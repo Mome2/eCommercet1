@@ -194,7 +194,7 @@ jobs:
         if: steps.composer-cache.outputs.cache-hit != 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ftp.byethost6.com
+          server: ${{ secrets.ftp_servername }}
           username: ${{ secrets.b6_ftp_username }}
           password: ${{ secrets.b6_ftp_password }}
           server-dir: /htdocs/
@@ -216,7 +216,7 @@ jobs:
         if: steps.composer-cache.outputs.cache-hit == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ftp.byethost6.com
+          server: ${{ secrets.ftp_servername }}
           username: ${{ secrets.b6_ftp_username }}
           password: ${{ secrets.b6_ftp_password }}
           server-dir: /htdocs/
