@@ -119,7 +119,6 @@ jobs:
                   }
               }
               file_put_contents($envFile, $env);
-              }
 
               echo "<h3>.env updated!</h3>";
               echo "<pre>";
