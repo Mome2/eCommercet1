@@ -141,7 +141,7 @@ jobs:
       - name: Force HTTPS in AppServiceProvider
         if: steps.composer-cache.outputs.cache-hit != 'true'
         run: |
-          cat << 'EOF' > app/Providers/AppServiceProvider.php
+          cat << 'EOF' > app/Providers/AppSetupServiceProvider.php
           <?php
 
           namespace App\Providers;
@@ -152,7 +152,7 @@ jobs:
           use Illuminate\Support\Facades\Artisan;
           use Illuminate\Support\Facades\Schema;
 
-          class AppServiceProvider extends ServiceProvider
+          class AppSetupServiceProvider extends ServiceProvider
           {
             public function register(): void{}
 
@@ -186,6 +186,8 @@ jobs:
             }
 
           EOF
+          grep -qxF '    App\\Providers\\AppSetupServiceProvider::class,' bootstrap/providers.php || \
+          sed -i "/return \[/ a\ \ \ \ App\\\Providers\\\AppSetupServiceProvider::class," bootstrap/providers.php
 
       - name: 📂 Sync files to production (FTP)
         if: steps.composer-cache.outputs.cache-hit != 'true'
