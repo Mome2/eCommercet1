@@ -80,6 +80,11 @@ return [
 
     'locale' => 'ar',
 
+    'available_locales' => [
+        'ar' => ['name' => 'العربية'],
+        'en' => ['name' => 'English']
+    ],
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
